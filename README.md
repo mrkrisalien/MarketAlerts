@@ -51,6 +51,17 @@ COINGECKO_API_KEY=       # demo key reduces CoinGecko 429s
 
 Keys you paste in **Settings** are stored in `data/secrets.json` (gitignored). Never commit that file.
 
+## Privacy (keys never shown to the public)
+
+- Stored keys are **never** returned by `/api/settings` or Dhan connect/renew/TOTP. The browser only sees connected / not connected.
+- Settings fields stay blank (password inputs). Leave blank to keep the saved value.
+- FastAPI `/docs` and OpenAPI are disabled.
+- `/data` and `.env` are not served.
+- Set `BOARD_PASSWORD` before any public tunnel so strangers cannot open the board or Settings.
+- Login cookie is HttpOnly; on HTTPS it is marked Secure.
+
+The board password still lets *you* open Settings on the phone — it does not display the keys. Anyone who knows the password can *replace* keys by pasting new ones. Use a password you do not share.
+
 ## Data sources (honest labels)
 
 | Market | Live path (free or with your account) | Fallback |

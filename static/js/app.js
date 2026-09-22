@@ -193,17 +193,15 @@ async function loadSettings() {
   const data = await res.json();
   const root = document.getElementById("settingsRoot");
   const esc = (s) => String(s ?? "").replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/</g, "&lt;");
-  const isSecret = (f) => f.includes("secret") || f.includes("token") || f.endsWith("jkey") || f.endsWith("_key");
-  root.innerHTML = `<form id="settingsForm">` + data.portals.map((p) => {
+  root.innerHTML = `<form id="settingsForm" autocomplete="off">` + data.portals.map((p) => {
     const st = data.status[p.id] || {};
     const on = st.ok === true || st === true;
     const label = st.label || (on ? "Connected" : "Not connected");
     const fields = (p.fields || []).map((f) => {
       const kept = data.filled && data.filled[f];
-      const shown = isSecret(f) ? "" : (data.values[f] || "");
-      const ph = isSecret(f) && kept ? "Saved on this PC — leave blank to keep" : "";
+      const ph = kept ? "Saved on this PC — leave blank to keep" : "";
       return `<label class="d-block mb-2">${esc(data.labels[f] || f)}
-        <input name="${esc(f)}" value="${esc(shown)}" placeholder="${esc(ph)}" autocomplete="off" ${isSecret(f) ? "type='password'" : "type='text'"} />
+        <input name="${esc(f)}" value="" placeholder="${esc(ph)}" autocomplete="off" type="password" />
       </label>`;
     }).join("");
     return `<div class="portal" data-portal="${p.id}">
@@ -222,7 +220,7 @@ async function loadSettings() {
         <button type="submit" class="tf-btn on" id="saveKeys">Save all keys</button>
         <button type="button" class="tf-btn" id="verifyKeys">Test connections</button>
       </div>
-      <p class="text-secondary mt-2 mb-0">Keys stay on this computer in data/secrets.json. Blank secret fields are not wiped. Dhan needs Client ID + Access Token (not only API key).</p>
+      <p class="text-secondary mt-2 mb-0">Keys never leave this computer and are never sent back to the browser after save. Blank fields keep the stored value. Dhan needs Client ID + Access Token (not only API key).</p>
       <div id="saveMsg" class="mt-2"></div>
     </div></form>`;
   const form = document.getElementById("settingsForm");
@@ -261,7 +259,7 @@ async function loadSettings() {
   const dhanVal = (name) => form.querySelector(`input[name="${name}"]`)?.value || "";
   const showDhan = (payload) => {
     if (!dhanMsg) return;
-    dhanMsg.textContent = payload.message || payload.error || JSON.stringify(payload);
+    dhanMsg.textContent = payload.message || payload.error || (payload.ok ? "Done." : "Failed.");
     dhanMsg.className = payload.ok ? "ok-dot mt-2" : "no-dot mt-2";
   };
   const dhanConnect = document.getElementById("dhanConnect");

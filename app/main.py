@@ -4,7 +4,7 @@ import os
 from pathlib import Path
 
 from fastapi import FastAPI, Form, Request, WebSocket, WebSocketDisconnect
-from fastapi.responses import FileResponse, HTMLResponse, RedirectResponse
+from fastapi.responses import FileResponse, HTMLResponse, JSONResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 import asyncio
 
@@ -18,11 +18,12 @@ from app.connectors.dhan_auth import renew_access, token_from_totp, verify_acces
 from app.connectors.verify import verify_all
 from app.explain import explain_alert
 from app.connectors.dhan_fo import fetch_fo
+from app.redact import dhan_public, scrub
 from app.service import service
 
 ROOT = Path(__file__).resolve().parent.parent
 
-app = FastAPI(title=settings.app_name, version="1.0.0")
+app = FastAPI(title=settings.app_name, version="1.0.0", docs_url=None, redoc_url=None, openapi_url=None)
 app.mount("/static", StaticFiles(directory=ROOT / "static"), name="static")
 
 GATE_COOKIE = "mc_gate"
@@ -46,18 +47,35 @@ def _authed(request: Request) -> bool:
     return hmac.compare_digest(request.cookies.get(GATE_COOKIE) or "", _gate_token())
 
 
+def _cookie_secure(request: Request) -> bool:
+    proto = (request.headers.get("x-forwarded-proto") or request.url.scheme or "").lower()
+    return proto == "https"
+
+
+def _lock_headers(response, api: bool = False):
+    response.headers["X-Content-Type-Options"] = "nosniff"
+    response.headers["X-Frame-Options"] = "DENY"
+    response.headers["Referrer-Policy"] = "same-origin"
+    if api:
+        response.headers["Cache-Control"] = "no-store"
+    return response
+
+
 @app.middleware("http")
 async def board_gate(request: Request, call_next):
+    api = request.url.path.startswith("/api") or request.url.path.startswith("/ws")
+    if request.url.path.startswith("/data") or request.url.path.endswith(".env"):
+        return _lock_headers(JSONResponse({"detail": "Not found"}, status_code=404), api=True)
     if not _gate_on():
-        return await call_next(request)
+        return _lock_headers(await call_next(request), api=api)
     path = request.url.path
     if path.startswith("/static") or path in {"/login", "/api/health"}:
-        return await call_next(request)
+        return _lock_headers(await call_next(request), api=path.startswith("/api"))
     if _authed(request):
-        return await call_next(request)
-    if path.startswith("/api") or path.startswith("/ws"):
-        return HTMLResponse("Sign in required", status_code=401)
-    return RedirectResponse("/login", status_code=302)
+        return _lock_headers(await call_next(request), api=api)
+    if api:
+        return _lock_headers(JSONResponse({"detail": "Sign in required"}, status_code=401), api=True)
+    return _lock_headers(RedirectResponse("/login", status_code=302))
 
 
 @app.get("/")
@@ -70,7 +88,7 @@ async def login_page() -> HTMLResponse:
     return HTMLResponse(
         """<!DOCTYPE html><html><head><meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
 <title>MarketCommand</title>
-<link href="/static/css/app.css?v=news-macro1" rel="stylesheet"/></head>
+<link href="/static/css/app.css?v=sec1" rel="stylesheet"/></head>
 <body><div class="app" style="display:grid;place-items:center;min-height:100vh">
 <form method="post" action="/login" class="card" style="width:min(360px,92vw);padding:24px">
 <h1 style="font-size:20px;margin:0 0 8px">MarketCommand</h1>
@@ -82,10 +100,17 @@ async def login_page() -> HTMLResponse:
 
 
 @app.post("/login")
-async def login_submit(password: str = Form("")):
+async def login_submit(request: Request, password: str = Form("")):
     if _gate_on() and hmac.compare_digest(password.strip(), _gate_secret()):
         res = RedirectResponse("/", status_code=302)
-        res.set_cookie(GATE_COOKIE, _gate_token(), httponly=True, samesite="lax", max_age=60 * 60 * 24 * 30)
+        res.set_cookie(
+            GATE_COOKIE,
+            _gate_token(),
+            httponly=True,
+            samesite="lax",
+            secure=_cookie_secure(request),
+            max_age=60 * 60 * 24 * 30,
+        )
         return res
     return RedirectResponse("/login", status_code=302)
 
@@ -118,6 +143,7 @@ async def get_settings() -> dict:
         "websites": WEBSITES,
         "live_feeds": LIVE_FEEDS,
         "charts": chart_catalog(),
+        "secrets_never_returned": True,
     }
 
 
@@ -150,14 +176,14 @@ async def post_settings(body: SettingsIn) -> dict:
     try:
         save(body.keys)
         service.invalidate()
-        return {"ok": True, "status": status(), "values": masked(), "filled": filled(), "message": "Saved on this machine."}
+        return {"ok": True, "status": status(), "values": masked(), "filled": filled(), "message": "Saved on this machine. Keys are not shown again."}
     except Exception as exc:
-        return {"ok": False, "error": f"Could not save: {exc.__class__.__name__}: {exc}"}
+        return {"ok": False, "error": "Could not save keys on this machine."}
 
 
 @app.post("/api/settings/verify")
 async def settings_verify() -> dict:
-    return await verify_all()
+    return scrub(await verify_all())
 
 
 @app.post("/api/dhan/connect")
@@ -167,9 +193,11 @@ async def dhan_connect(body: DhanConnectIn) -> dict:
     if result.get("ok"):
         save({"dhan_client_id": client_id, "dhan_access_token": token})
         service.invalidate()
-        result["status"] = status()
-        result["values"] = masked()
-    return result
+    out = dhan_public(result)
+    out["status"] = status()
+    out["values"] = masked()
+    out["filled"] = filled()
+    return out
 
 
 @app.post("/api/dhan/renew")
@@ -179,9 +207,11 @@ async def dhan_renew(body: DhanConnectIn) -> dict:
     if result.get("ok") and result.get("access_token"):
         save({"dhan_client_id": client_id, "dhan_access_token": result["access_token"]})
         service.invalidate()
-        result["values"] = masked()
-        result["status"] = status()
-    return result
+    out = dhan_public(result)
+    out["status"] = status()
+    out["values"] = masked()
+    out["filled"] = filled()
+    return out
 
 
 @app.post("/api/dhan/totp-token")
@@ -190,9 +220,11 @@ async def dhan_totp_token(body: DhanTotpIn) -> dict:
     if result.get("ok") and result.get("access_token"):
         save({"dhan_client_id": result.get("client_id") or body.dhan_client_id, "dhan_access_token": result["access_token"]})
         service.invalidate()
-        result["values"] = masked()
-        result["status"] = status()
-    return result
+    out = dhan_public(result)
+    out["status"] = status()
+    out["values"] = masked()
+    out["filled"] = filled()
+    return out
 
 
 class WhyIn(BaseModel):

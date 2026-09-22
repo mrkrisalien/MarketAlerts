@@ -29,7 +29,7 @@ KEYS = [
     "deepseek_api_key",
 ]
 
-MASKED = {k for k in KEYS if any(x in k for x in ("secret", "token", "jkey")) or k.endswith("_key")}
+MASKED = set(KEYS)
 
 
 def _empty() -> dict[str, str]:
@@ -65,16 +65,8 @@ def save(updates: dict[str, str]) -> dict[str, str]:
 
 
 def masked() -> dict[str, str]:
-    data = load()
-    out = {}
-    for k, v in data.items():
-        if not v:
-            out[k] = ""
-        elif k in MASKED:
-            out[k] = ""
-        else:
-            out[k] = v
-    return out
+    """Never send stored credentials to the browser."""
+    return {k: "" for k in KEYS}
 
 
 def filled() -> dict[str, bool]:
