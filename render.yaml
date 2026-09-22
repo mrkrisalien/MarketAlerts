@@ -1,0 +1,11 @@
+services:
+  - type: web
+    name: marketcommand
+    runtime: docker
+    plan: free
+    healthCheckPath: /api/health
+    envVars:
+      - key: BOARD_PASSWORD
+        sync: false
+      - key: REFRESH_SECONDS
+        value: "45"

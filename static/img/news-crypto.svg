@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 220" preserveAspectRatio="xMidYMid slice">
+  <defs>
+    <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#7c2d12"/>
+      <stop offset="1" stop-color="#f59e0b"/>
+    </linearGradient>
+  </defs>
+  <rect width="640" height="220" fill="url(#g)"/>
+  <circle cx="520" cy="110" r="54" fill="#fbbf24"/>
+  <text x="498" y="128" fill="#7c2d12" font-family="Segoe UI, Georgia, serif" font-size="56" font-weight="700">¿</text>
+  <path d="M40 160 L90 120 L140 140 L200 80 L260 110 L320 50 L380 90 L440 70" fill="none" stroke="#fff7ed" stroke-width="3"/>
+  <text x="36" y="58" fill="#fff" font-family="Segoe UI, Roboto, sans-serif" font-size="28" font-weight="700">CRYPTO</text>
+  <text x="36" y="92" fill="#ffedd5" font-family="Segoe UI, Roboto, sans-serif" font-size="15">Coins, flows, and digital liquidity</text>
+</svg>

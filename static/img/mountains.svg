@@ -1,0 +1,37 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 420" preserveAspectRatio="xMidYMid slice">
+  <defs>
+    <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#7eb6d9"/>
+      <stop offset=".45" stop-color="#c5def0"/>
+      <stop offset="1" stop-color="#e8f2f8"/>
+    </linearGradient>
+    <linearGradient id="far" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#dce8f2"/>
+      <stop offset="1" stop-color="#9bb4c9"/>
+    </linearGradient>
+    <linearGradient id="mid" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#f7fbff"/>
+      <stop offset=".35" stop-color="#c9d6e2"/>
+      <stop offset="1" stop-color="#6d8498"/>
+    </linearGradient>
+    <linearGradient id="near" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#ffffff"/>
+      <stop offset=".28" stop-color="#e4edf4"/>
+      <stop offset="1" stop-color="#3e5366"/>
+    </linearGradient>
+    <linearGradient id="shade" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#2a3b4a" stop-opacity=".15"/>
+      <stop offset="1" stop-color="#0b1520" stop-opacity=".55"/>
+    </linearGradient>
+  </defs>
+  <rect width="640" height="420" fill="url(#sky)"/>
+  <ellipse cx="92" cy="78" rx="46" ry="18" fill="#fff" opacity=".85"/>
+  <ellipse cx="118" cy="72" rx="28" ry="14" fill="#fff" opacity=".9"/>
+  <ellipse cx="520" cy="90" rx="54" ry="16" fill="#fff" opacity=".7"/>
+  <path fill="url(#far)" d="M0 250 L90 170 L150 210 L230 120 L310 200 L380 145 L470 230 L560 155 L640 240 V420 H0Z"/>
+  <path fill="url(#mid)" d="M0 300 L70 210 L140 275 L220 150 L300 255 L390 175 L480 290 L560 200 L640 310 V420 H0Z"/>
+  <path fill="#fff" opacity=".9" d="M220 150 L248 198 L200 188 Z M390 175 L425 230 L362 218 Z M70 210 L92 242 L52 236Z"/>
+  <path fill="url(#near)" d="M-20 360 L80 230 L160 320 L250 180 L360 330 L470 210 L580 340 L680 250 V430 H-20Z"/>
+  <path fill="#fff" d="M250 180 L286 236 L228 228 Z M470 210 L508 268 L442 258Z"/>
+  <rect width="640" height="420" fill="url(#shade)"/>
+</svg>
