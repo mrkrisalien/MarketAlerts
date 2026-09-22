@@ -88,14 +88,17 @@ async def login_page() -> HTMLResponse:
     return HTMLResponse(
         """<!DOCTYPE html><html><head><meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
 <title>MarketCommand</title>
-<link href="/static/css/app.css?v=sec1" rel="stylesheet"/></head>
-<body><div class="app" style="display:grid;place-items:center;min-height:100vh">
-<form method="post" action="/login" class="card" style="width:min(360px,92vw);padding:24px">
-<h1 style="font-size:20px;margin:0 0 8px">MarketCommand</h1>
+<link href="/static/css/app.css?v=sec2" rel="stylesheet"/></head>
+<body>
+<div class="login-screen">
+<form method="post" action="/login" class="login-card">
+<h1>MarketCommand</h1>
 <p class="text-secondary">This public URL is locked. Enter the board password.</p>
-<input name="password" type="password" class="search" style="width:100%;margin:12px 0;padding:10px 12px;border:1px solid #dadce0;border-radius:8px" placeholder="Password" autofocus/>
+<input name="password" type="password" autocomplete="current-password" placeholder="Password" autofocus/>
 <button type="submit" class="view-more">Open board</button>
-</form></div></body></html>"""
+</form>
+</div>
+</body></html>"""
     )
 
 

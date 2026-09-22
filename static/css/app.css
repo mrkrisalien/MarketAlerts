@@ -36,6 +36,40 @@ h1, h2, h3, h4, h5, h6, p, span, label, td, th, li, small, b, strong { color: in
 .table, .table > :not(caption) > * > * { color: #202124 !important; background: transparent !important; }
 
 .app { display: grid; grid-template-columns: var(--sidebar-w) 1fr; min-height: 100vh; }
+.login-screen {
+  display: grid;
+  place-items: center;
+  min-height: 100vh;
+  min-height: 100dvh;
+  width: 100%;
+  margin: 0;
+  padding: 24px;
+  grid-template-columns: none;
+}
+.login-card {
+  width: min(380px, 100%);
+  padding: 28px 24px;
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  box-shadow: var(--shadow);
+}
+.login-card h1 { font-size: 20px; margin: 0 0 8px; color: #202124; }
+.login-card input {
+  width: 100%;
+  margin: 14px 0 16px;
+  padding: 12px 14px;
+  border: 1px solid #dadce0;
+  border-radius: 8px;
+  font: inherit;
+}
+.login-card .view-more {
+  display: flex;
+  width: 100%;
+  justify-content: center;
+  padding: 10px 14px;
+  font-size: 14px;
+}
 .sidebar {
   background: #fff url("/static/img/sidebar.svg") right top / cover no-repeat;
   border-right: 1px solid var(--line);
